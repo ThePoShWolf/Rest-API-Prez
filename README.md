@@ -39,3 +39,7 @@ Invoke-RestMethod -Uri 'https://us1.pdfgeneratorapi.com/api/v3/templates' -Heade
     'Accept' = 'application/json'
 }
 ```
+
+# Standardizing API calls with an Invoke-APICall cmdlet
+
+# managing API credentials.
