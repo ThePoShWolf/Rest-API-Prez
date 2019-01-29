@@ -13,3 +13,11 @@ Invoke-RestMethod -Uri 'https://us1.pdfgeneratorapi.com/api/v3/templates' -Heade
     'Content-Type' = 'application/json'
     'Accept' = 'application/json'
 }
+
+#SherpaDesk example:
+$encodedAuth = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$key`-$inst`:$apikey"))
+$header = @{
+    Authorization = "Basic $encodedAuth"
+    Accept = 'application/json'
+}
+Invoke-RestMethod -Uri 'https://api.sherpadesk.com/tickets?status=open,onhold&role=user&limit=6&format=json' -Headers $header

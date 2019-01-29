@@ -18,7 +18,7 @@ Invoke-RestMethod -Uri https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees -Hea
 
 That -H is header stuff:
 
-Retrieving templates from the PDF Generator API:
+### Retrieving templates from the PDF Generator API:
 
 [source](https://pdfgeneratorapi.com/docs#templates-get-all)
 ```bash
@@ -40,6 +40,24 @@ Invoke-RestMethod -Uri 'https://us1.pdfgeneratorapi.com/api/v3/templates' -Heade
 }
 ```
 
+### Using parameters with basic authentication
+
+[source](https://documenter.getpostman.com/view/4454237/apisherpadeskcom-playground/RW8AooQg#6a1f8cfa-8910-8c9f-2e68-bfaefb51920b)
+```bash
+curl --request GET "https://ncg1in-8d1rag:5nuauzj5pkfftlz3fmyksmyhat6j35kf@api.sherpadesk.com/tickets?status=open,onhold&role=user&limit=6&format=json" \
+  --data ""
+```
+
+```PowerShell
+# Convert to Base64 (watch encoding!)
+$encodedAuth = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes('ncg1in-8d1rag:5nuauzj5pkfftlz3fmyksmyhat6j35kf'))
+$header = @{
+    Authorization = "Basic $encodedAuth"
+    Accept = 'application/json'
+}
+Invoke-RestMethod -Uri 'https://api.sherpadesk.com/tickets?status=open,onhold&role=user&limit=6&format=json' -Headers $header
+```
+
 # Standardizing API calls with an Invoke-APICall cmdlet
 
-# managing API credentials.
+# Managing API credentials.
