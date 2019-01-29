@@ -4,7 +4,7 @@
 
 This is for an Airtable API call to retrieve info from a base called: 'appBLvHFF78kERCvW' and the 'Payees' Table:
 
-[https://airtable.com/api](source)
+[source](https://airtable.com/api)
 ```bash
 $ curl https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees \
 -H "Authorization: Bearer YOUR_API_KEY"
@@ -20,7 +20,7 @@ That -H is header stuff:
 
 Retrieving templates from the PDF Generator API:
 
-[https://pdfgeneratorapi.com/docs#templates-get-all](source)
+[source](https://pdfgeneratorapi.com/docs#templates-get-all)
 ```bash
 curl -H "X-Auth-Key: 61e5f04ca1794253ed17e6bb986c1702" \
     -H "X-Auth-Workspace: demo.example@actualreports.com" \
