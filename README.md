@@ -2,7 +2,11 @@
 
 ## cURL vs Invoke-RestMethod
 
-This is for an Airtable API call to retrieve info from a base called: 'appBLvHFF78kERCvW' and the 'Payees' Table:
+### Getting Data
+
+#### Getting records from Airtable
+
+Retrieves info from a base called: 'appBLvHFF78kERCvW' and the 'Payees' Table:
 
 [source](https://airtable.com/api)
 ```bash
@@ -18,7 +22,7 @@ Invoke-RestMethod -Uri https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees -Hea
 
 That -H is header stuff:
 
-### Retrieving templates from the PDF Generator API:
+#### Retrieving templates from the PDF Generator API:
 
 [source](https://pdfgeneratorapi.com/docs#templates-get-all)
 ```bash
@@ -40,7 +44,7 @@ Invoke-RestMethod -Uri 'https://us1.pdfgeneratorapi.com/api/v3/templates' -Heade
 }
 ```
 
-### Using parameters with basic authentication
+#### Using Parameters, Basic Authentication
 
 [source](https://documenter.getpostman.com/view/4454237/apisherpadeskcom-playground/RW8AooQg#6a1f8cfa-8910-8c9f-2e68-bfaefb51920b)
 ```bash
@@ -56,6 +60,45 @@ $header = @{
     Accept = 'application/json'
 }
 Invoke-RestMethod -Uri 'https://api.sherpadesk.com/tickets?status=open,onhold&role=user&limit=6&format=json' -Headers $header
+```
+
+### Creating or Updating Data
+
+POST creates
+PATCH updates
+
+#### Airtable API
+
+```bash
+curl -v -XPOST https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-H "Content-Type: application/json" \
+ -d '{
+  "fields": {
+    "Name": "EWEB",
+    "Notes": "Water and electric",
+    "Expenses": [
+      "reccvn4TB4twTQDrs"
+    ]
+  }
+}'
+```
+
+```PowerShell
+$headers = @{
+    Authorization = "Bearer YOUR_API_KEY"
+    'Content-Type' = 'application/json'
+}
+$body = @{
+    fields = @{
+        Name = 'EWEB'
+        Notes = 'Water and electric'
+        Expenses = @(
+            "reccvn4TB4twTQDrs"
+        )
+    }
+} | ConvertTo-Json
+Invoke-WebRequest 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees' -Headers $headers -Body $body
 ```
 
 # Standardizing API calls with an Invoke-APICall cmdlet
