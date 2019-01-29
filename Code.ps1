@@ -1,11 +1,17 @@
-#region cURL vs Invoke-RestMethod
+#region demo header
+Throw 'this is a demo'
+#endregion
+# cURL vs Invoke-RestMethod
 
-# Airtable GET example
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+#region Airtable GET example
 Invoke-RestMethod -Uri https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees -Headers @{
     Authorization = "Bearer $AirTableKey"
 }
+#endregion
 
-# PDF Generator GET Example
+#region PDF Generator GET Example
 $header = @{
     'X-Auth-Key' = $PDF.key
     'X-Auth-Secret' = $PDF.secret
@@ -14,16 +20,18 @@ $header = @{
     'Accept' = 'application/json'
 }
 Invoke-RestMethod -Uri 'https://us1.pdfgeneratorapi.com/api/v3/templates' -Headers $header
+#endregion
 
-# SherpaDesk GET example:
+#region SherpaDesk GET example:
 $encodedAuth = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$key`-$inst`:$apikey"))
 $header = @{
     Authorization = "Basic $encodedAuth"
     Accept = 'application/json'
 }
 Invoke-RestMethod -Uri 'https://api.sherpadesk.com/tickets?status=open,onhold&role=user&limit=6&format=json' -Headers $header
+#endregion
 
-# Airtable POST example
+#region Airtable POST example
 $headers = @{
     Authorization = "Bearer $AirTableKey"
     'Content-Type' = 'application/json'
@@ -31,11 +39,68 @@ $headers = @{
 }
 $body = @{
     fields = @{
-        Name = 'EWEB'
-        Notes = 'Water and electric'
-        Expenses = @(
-            "reccvn4TB4twTQDrs"
-        )
+        Name = 'Eugene Water and Electric Board'
     }
 } | ConvertTo-Json
-Invoke-WebRequest -Uri 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees' -Method Post -Headers $headers -Body $body
+Invoke-WebRequest 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Patch -Headers $headers -Body $body
+#endregion
+
+#region PDF Generator POST example
+$header = @{
+    'X-Auth-Key' = $PDF.key
+    'X-Auth-Secret' = $PDF.secret
+    'X-Auth-Workspace' = $PDF.workspace
+    "Content-Type" = "application/json"
+    "Accept" = "application/json"
+}
+$body = @{
+    id = 304355781
+    DocNumber = 15
+    ShipAddr = @{  
+        Line1 = "St Patrick Road 4"
+        City = "London"
+        Country = "United Kingdom"
+        CountrySubDivisionCode = "UK12991"
+   }
+   CustomerInfo = @{
+       CompanyName = 'Acme Inc.'
+       GivenName = "John"
+       FamilyName = 'Smith'
+   }
+   CompanyInfo = @{
+       CompanyName = 'Your Fav Shipper!'
+   }
+   Line = @(
+       @{
+            Name = "#1014A"
+            Description = "Customer Notes"
+       }
+   )
+} | ConvertTo-Json
+Invoke-RestMethod -Uri 'https://us1.pdfgeneratorapi.com/api/v3/templates/21661/output?format=pdf&output=base64' -Method Post -Headers $header -Body $Body
+
+#region Convert to file
+$resp = Invoke-RestMethod -Uri 'https://us1.pdfgeneratorapi.com/api/v3/templates/21661/output?format=pdf&output=base64' -Method Post -Headers $header -Body $Body
+$bytes = [Convert]::FromBase64String($resp.response)
+[IO.File]::WriteAllBytes('C:\tmp\PDFGenExample.pdf', $bytes)
+. 'C:\tmp\PDFGenExample.pdf'
+#endregion
+#endregion
+
+#region SherpaDesk Put example
+$encodedAuth = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$key`-$inst`:$apikey"))
+$header = @{
+    Authorization = "Basic $encodedAuth"
+    Accept = 'application/json'
+    'Content-Type' = 'application/json'
+}
+$body = @{
+    account_id = '-1'
+    hours = '0.25'
+    is_project_log = 'false'
+    note_text = 'test_30/01_31/01'
+    task_type_id = '94596'
+    tech_id ='950330'
+} | ConvertTo-Json
+Invoke-RestMethod -Uri "https://api.sherpadesk.com/time/2292188?format=json" -Method Put -Headers $header -Body $body
+#endregion
