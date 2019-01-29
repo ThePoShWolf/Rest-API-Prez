@@ -284,4 +284,54 @@ Function New-PDFGenAuthConfig {
 }
 ```
 
+And of course, use these in your parameter blocks:
+
+```PowerShell
+Function Get-PDFGenTemplates {
+    Param(
+        [ValidateNotNullOrEmpty()]
+        [string]$key = $AuthConfig.key,
+        [ValidateNotNullOrEmpty()]
+        [string]$secret = $AuthConfig.secret,
+        [ValidateNotNullOrEmpty()]
+        [string]$workspace = $AuthConfig.workspace
+    )
+...
+}
+```
+
 ## Store locally?
+
+Should you store your API keys in clear text?
+
+![No](https://i.imgur.com/DKUR9Tk.png)
+
+### But you can encrypt them using PowerShell!
+
+[repo](https://github.com/techsnips/psairtable)
+
+Credit to Adam Bertram
+
+He encrypts the API key using ConvertTo-SecureString:
+
+```PowerShell
+function Save-AirTableApiKey {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$ApiKey
+    )
+
+    function encrypt([string]$TextToEncrypt) {
+        $secure = ConvertTo-SecureString $TextToEncrypt -AsPlainText -Force
+        $encrypted = $secure | ConvertFrom-SecureString
+        return $encrypted
+    }
+    $config = Get-PSAirTableConfiguration
+    $config.Application.ApiKey = encrypt($ApiKey)
+    $config | ConvertTo-Json | Set-Content -Path "$WorkingDir\Configuration.json"
+}
+```
+
+I can't speak to the security of said secure string, but it _might_ be considered good enough for _most_ use cases.
