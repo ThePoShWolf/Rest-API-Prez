@@ -132,7 +132,7 @@ $body = @{
 Invoke-RestMethod -Uri 'https://us1.pdfgeneratorapi.com/api/v3/templates/21661/output?format=pdf&output=base64' -Method Post -Headers $header -Body $Body
 ```
 
-#### SherpaDesk POST
+#### SherpaDesk PUT
 
 ```bash
 curl --location --request PUT "https://ncg1in-8d1rag:5nuauzj5pkfftlz3fmyksmyhat6j35kf@api.sherpadesk.com/time/{{time_id}}?format=json" \
@@ -164,4 +164,124 @@ Invoke-RestMethod -Uri "https://api.sherpadesk.com/time/{{time_id}}?format=json"
 
 # Standardizing API calls with an Invoke-APICall cmdlet
 
+
+
+
 # Managing API credentials.
+
+## Leave it to the user
+
+This is unwieldy and a bad idea. Makes for commands like these:
+
+```PowerShell
+Get-SDTicket -Organization 'ncg1in' -Instance '8d1rag' -Key '5nuauzj5pkfftlz3fmyksmyhat6j35kf'
+# Or
+Get-Record -BaseIdentity 'Finances' -Table 'Payees' -ApiKey 'keyttau093ptSHauP'
+```
+
+And sure, you could just:
+
+```PowerShell
+$PSDefaultParameterValues = @{
+    '*-SD*:Organization' = 'ncg1in'
+    '*-SD*:Instance' = '8d1rag'
+    '*-SD*:Key' = '5nuauzj5pkfftlz3fmyksmyhat6j35kf'
+}
+Get-SDTicket
+```
+
+Where's the fun in that?
+
+## Module (script) scoped variable
+
+Inside your .psm1:
+```PowerShell
+$script:ApiKey = 'key'
+```
+
+But you have to have it to be able to set it...
+
+### SherpaDesk Example
+
+[Repo](https://github.com/theposhwolf/pssherpadesk)
+
+Retrieve the API key from the API using a user's email and password:
+
+```PowerShell
+$credential = Get-Credential
+$up = "$($credential.GetNetworkCredential().UserName)`:$($credential.GetNetworkCredential().Password)"
+$encodedUP = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$up"))
+$header = @{
+        Authorization = "Basic $encodedUP"
+        Accept = 'application/json'
+    }
+$resp = Invoke-RestMethod -Method Get -Uri 'https://api.sherpadesk.com/login' -Headers $header
+$Script:AuthConfig = @{
+    ApiKey = $resp.api_token
+    WorkingOrganization = ''
+    WorkingInstance = ''
+}
+```
+
+This is soooo convenient. This turns into:
+
+```PowerShell
+Get-SDApiKey -Email email@domain.com
+```
+
+Though as you saw with earlier API examples, you still need your Org and Instance, but there is a call for that:
+
+```PowerShell
+$encodedAuth = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("x:$ApiKey"))
+$header = @{
+    Authorization = "Basic $encodedAuth"
+    Accept = 'application/json'
+}
+$resp = Invoke-RestMethod -Uri 'https://api.sherpadesk.com/organizations/' -Method Get -Headers $header
+$Script:AuthConfig.WorkingOrganization = $resp[0].key
+$Script:AuthConfig.WorkingInstance = $resp[0].instances[0].key
+```
+
+And now you have a module scope variable to use in your parameter blocks like:
+
+```PowerShell
+Function Get-SDTicket{
+    [cmdletbinding()]
+    Param(
+        [parameter(
+            ParameterSetName = 'ByKey'
+        )]
+        [string]$Key,
+        [string]$Organization = $authConfig.WorkingOrganization,
+        [string]$Instance = $authConfig.WorkingInstance,
+        [string]$ApiKey = $authConfig.ApiKey
+    )
+...
+}
+```
+
+### PDF Generator API example
+
+[Repo](https://github.com/theposhwolf/PS_PDFGeneratorAPI)
+
+For this API, and most, you have to download some auth info ahead of time. But you can still save it:
+
+```PowerShell
+Function New-PDFGenAuthConfig {
+    Param (
+        [ValidateNotNullOrEmpty()]
+        [string]$key,
+        [ValidateNotNullOrEmpty()]
+        [string]$secret,
+        [ValidateNotNullOrEmpty()]
+        [string]$workspace
+    )
+    $Script:AuthConfig = [pscustomobject] @{
+        key = $key
+        secret = $secret
+        workspace = $workspace
+    }
+}
+```
+
+## Store locally?
