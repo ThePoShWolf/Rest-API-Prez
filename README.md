@@ -164,8 +164,76 @@ Invoke-RestMethod -Uri "https://api.sherpadesk.com/time/{{time_id}}?format=json"
 
 # Standardizing API calls with an Invoke-APICall cmdlet
 
+## One place for stuff like pagination
 
+[PSAirtable:PSAirtable.psm1](https://github.com/TechSnips/PSAirTable/blob/df02d8e1b5ac08d546a8f3ba804a99ec25c49b7f/PSAirTable.psm1#L459)
+```PowerShell
+$response = Invoke-RestMethod @invRestParams
 
+if ('records' -in $response.PSObject.Properties.Name) {
+    $baseId = $Uri.split('/')[4]
+    $table = $Uri.split('/')[5]
+    $response.records.foreach({
+            $output = $_.fields
+            $output | Add-Member -MemberType NoteProperty -Name 'Record ID' -Value $_.id
+            $output | Add-Member -MemberType NoteProperty -Name 'Base ID' -Value $baseId
+            $output | Add-Member -MemberType NoteProperty -Name 'Table' -Value $table -PassThru
+        })
+
+    while ('offset' -in $response.PSObject.Properties.Name) {
+        $invParams = [hashtable]$PSBoundParameters
+        if ($invParams['HttpBody'] -and $invParams['HttpBody'].ContainsKey('offset')) {
+            $invParams['HttpBody'].offset = $response.offset
+        } else {
+            $invParams['HttpBody'] = $HttpBody + @{ offset = $response.offset  }
+        }
+        
+        InvokeAirTableApiCall @invParams | Tee-Object -Variable response
+    }
+} elseif (...
+```
+
+## One place to handle errors like retries
+
+[PSSlack:Send-SlackAPI.ps1](https://github.com/RamblingCookieMonster/PSSlack/blob/dcabbeedd50de32ec08bfe19875418334e917ae8/PSSlack/Public/Send-SlackAPI.ps1#L83)
+
+```PowerShell
+if ($_.Exception.Response.StatusCode -eq 429) {
+
+    # Get the time before we can try again.
+    if( $_.Exception.Response.Headers -and $_.Exception.Response.Headers.Contains('Retry-After') ) {
+        $RetryPeriod = $_.Exception.Response.Headers.GetValues('Retry-After')
+        if($RetryPeriod -is [string[]]) {
+            $RetryPeriod = [int]$RetryPeriod[0]
+        }
+    }
+    else {
+        $RetryPeriod = 2
+    }
+    Write-Verbose "Sleeping [$RetryPeriod] seconds due to Slack 429 response"
+    Start-Sleep -Seconds $RetryPeriod
+    Send-SlackApi @PSBoundParameters
+
+}
+```
+
+## And it makes for easy cmdlet writing
+
+[PS_PDFGeneratorAPI](https://github.com/ThePoShWolf/PS_PDFGeneratorAPI/blob/master/src/Public/Get-PDFGenTemplates.ps1)
+```PowerShell
+Function Get-PDFGenTemplates {
+    Param(
+        [ValidateNotNullOrEmpty()]
+        [string]$key = $AuthConfig.key,
+        [ValidateNotNullOrEmpty()]
+        [string]$secret = $AuthConfig.secret,
+        [ValidateNotNullOrEmpty()]
+        [string]$workspace = $AuthConfig.workspace
+    )
+
+    (Invoke-PDFGeneratorAPICall -resource templates -method Get -key $key -secret $secret -workspace $workspace).response
+}
+```
 
 # Managing API credentials.
 
@@ -203,7 +271,7 @@ But you have to have it to be able to set it...
 
 ### SherpaDesk Example
 
-[Repo](https://github.com/theposhwolf/pssherpadesk)
+[PSSherpaDesk](https://github.com/theposhwolf/pssherpadesk)
 
 Retrieve the API key from the API using a user's email and password:
 
@@ -334,4 +402,55 @@ function Save-AirTableApiKey {
 }
 ```
 
-I can't speak to the security of said secure string, but it _might_ be considered good enough for _most_ use cases.
+I can't speak to the security of said secure string, but it _could_ be considered good enough for _most_ use cases.
+
+### A PS Core compatible option
+
+Here's what I just implemented in both my SherpaDesk and PDFGen modules:
+
+```PowerShell
+Function Get-SDSavePath {
+    Param (
+
+    )
+    If($PSVersionTable.PSVersion.Major -ge 6){
+        # PS Core
+        If($IsLinux){
+            $saveDir = $env:HOME
+        }ElseIf($IsWindows){
+            $saveDir = $env:USERPROFILE
+        }
+    }Else{
+        # Windows PS
+        $saveDir = $env:USERPROFILE
+    }
+    "$saveDir\.pssherpadesk"
+}
+Function Save-SDAuthConfig {
+    Param(
+
+    )
+    $dir = Get-SDSavePath
+    If(-not(Test-Path $dir -PathType Container)){
+        New-Item $dir -ItemType Directory
+    }
+    If(-not(Test-Path $dir\credentials.json -PathType Leaf)){
+        New-Item $dir\credentials.json -ItemType File
+    }
+    $encryptedAuth = @{}
+    ForEach($property in $AuthConfig.GetEnumerator()){
+        $encryptedAuth."$($property.Name)" = (ConvertFrom-SecureString (ConvertTo-SecureString $property.Value -AsPlainText -Force))
+    }
+    $encryptedAuth | ConvertTo-Json | Set-Content $dir\credentials.json
+}
+```
+
+The only problem? ```ConvertFrom-SecureString``` isn't actually implemented in PS Core on Linux without specifying a key :(
+
+```PowerShell
+PS> ConvertFrom-SecureString $ss
+
+ConvertFrom-SecureString : Unable to load shared library 'CRYPT32.dll' or one of its dependencies. In order to help diagnose loading problems, consider setting the LD_DEBUG environment variable: libCRYPT32.dll: cannot open shared object file: No such file or directory
+```
+
+And yep, its an issue: [PowerShell Issue 1654](https://github.com/PowerShell/PowerShell/issues/1654)

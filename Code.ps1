@@ -23,7 +23,7 @@ Invoke-RestMethod -Uri 'https://us1.pdfgeneratorapi.com/api/v3/templates' -Heade
 #endregion
 
 #region SherpaDesk GET example:
-$encodedAuth = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$key`-$inst`:$apikey"))
+$encodedAuth = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$($sd.WorkingOrganization)`-$($sd.WorkingInstance)`:$($sd.apikey)"))
 $header = @{
     Authorization = "Basic $encodedAuth"
     Accept = 'application/json'
@@ -31,7 +31,7 @@ $header = @{
 Invoke-RestMethod -Uri 'https://api.sherpadesk.com/tickets?status=open,onhold&role=user&limit=6&format=json' -Headers $header
 #endregion
 
-#region Airtable POST example
+#region Airtable PATCH example
 $headers = @{
     Authorization = "Bearer $AirTableKey"
     'Content-Type' = 'application/json'
@@ -88,7 +88,7 @@ $bytes = [Convert]::FromBase64String($resp.response)
 #endregion
 
 #region SherpaDesk Put example
-$encodedAuth = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$key`-$inst`:$apikey"))
+$encodedAuth = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$($sd.WorkingOrganization)`-$($sd.WorkingInstance)`:$($sd.apikey)"))
 $header = @{
     Authorization = "Basic $encodedAuth"
     Accept = 'application/json'
@@ -96,7 +96,7 @@ $header = @{
 }
 $body = @{
     account_id = '-1'
-    hours = '0.25'
+    hours = '1.00'
     is_project_log = 'false'
     note_text = 'test_30/01_31/01'
     task_type_id = '94596'
