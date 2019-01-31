@@ -9,6 +9,11 @@ Throw 'this is a demo'
 Invoke-RestMethod -Uri https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees -Headers @{
     Authorization = "Bearer $AirTableKey"
 }
+# Get more info
+$resp = Invoke-RestMethod -Uri https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees -Headers @{
+    Authorization = "Bearer $AirTableKey"
+}
+$resp.records
 #endregion
 
 #region PDF Generator GET Example
@@ -20,6 +25,9 @@ $header = @{
     'Accept' = 'application/json'
 }
 Invoke-RestMethod -Uri 'https://us1.pdfgeneratorapi.com/api/v3/templates' -Headers $header
+# Get more info
+$resp = Invoke-RestMethod -Uri 'https://us1.pdfgeneratorapi.com/api/v3/templates' -Headers $header
+$resp.response
 #endregion
 
 #region SherpaDesk GET example:
@@ -32,6 +40,12 @@ Invoke-RestMethod -Uri 'https://api.sherpadesk.com/tickets?status=open,onhold&ro
 #endregion
 
 #region Airtable PATCH example
+# Get
+Invoke-WebRequest 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Get -Headers $headers
+$resp = Invoke-WebRequest 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Get -Headers $headers
+$resp.content | ConvertFrom-Json
+($resp.content | ConvertFrom-Json).fields
+# Patch
 $headers = @{
     Authorization = "Bearer $AirTableKey"
     'Content-Type' = 'application/json'
@@ -39,7 +53,7 @@ $headers = @{
 }
 $body = @{
     fields = @{
-        Name = 'Eugene Water and Electric Board'
+        Name = 'EWEB'
     }
 } | ConvertTo-Json
 Invoke-WebRequest 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Patch -Headers $headers -Body $body
@@ -88,6 +102,9 @@ $bytes = [Convert]::FromBase64String($resp.response)
 #endregion
 
 #region SherpaDesk Put example
+# Get
+(Invoke-RestMethod -Uri "https://api.sherpadesk.com/time" -Headers $header) | ?{$_.time_id -eq '2292188'}
+# Put
 $encodedAuth = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$($sd.WorkingOrganization)`-$($sd.WorkingInstance)`:$($sd.apikey)"))
 $header = @{
     Authorization = "Basic $encodedAuth"
@@ -96,11 +113,38 @@ $header = @{
 }
 $body = @{
     account_id = '-1'
-    hours = '1.00'
+    hours = '2.00'
     is_project_log = 'false'
-    note_text = 'test_30/01_31/01'
-    task_type_id = '94596'
+    note_text = 'test_30/01_31/01_BLAHBLAH'
+    task_type_id = '94604'
     tech_id ='950330'
 } | ConvertTo-Json
 Invoke-RestMethod -Uri "https://api.sherpadesk.com/time/2292188?format=json" -Method Put -Headers $header -Body $body
+#endregion
+
+#region SherpaDesk retrieve API key
+$credential = Get-Credential
+$up = "$($credential.GetNetworkCredential().UserName)`:$($credential.GetNetworkCredential().Password)"
+$encodedUP = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$up"))
+$header = @{
+    Authorization = "Basic $encodedUP"
+    Accept = 'application/json'
+}
+$resp = Invoke-RestMethod -Method Get -Uri 'https://api.sherpadesk.com/login' -Headers $header
+$Script:AuthConfig = @{
+    ApiKey = $resp.api_token
+    WorkingOrganization = ''
+    WorkingInstance = ''
+}
+#endregion
+
+#region SherpaDesk metadata
+$encodedAuth = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("x:$($AuthConfig.ApiKey)"))
+$header = @{
+    Authorization = "Basic $encodedAuth"
+    Accept = 'application/json'
+}
+$resp = Invoke-RestMethod -Uri 'https://api.sherpadesk.com/organizations/' -Method Get -Headers $header
+$Script:AuthConfig.WorkingOrganization = $resp[0].key
+$Script:AuthConfig.WorkingInstance = $resp[0].instances[0].key
 #endregion

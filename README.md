@@ -64,9 +64,9 @@ Invoke-RestMethod -Uri 'https://api.sherpadesk.com/tickets?status=open,onhold&ro
 
 ### Creating or Updating Data
 
-PATCH Updates
-
 POST Creates
+
+PATCH Updates
 
 PUT Replaces
 
@@ -406,7 +406,7 @@ function Save-AirTableApiKey {
 
 I can't speak to the security of said secure string, but it _could_ be considered good enough for _most_ use cases.
 
-### A PS Core compatible option
+### Another approach, also PS Core compatible
 
 Here's what I just implemented in both my SherpaDesk and PDFGen modules:
 
