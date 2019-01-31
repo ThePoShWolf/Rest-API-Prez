@@ -43,8 +43,7 @@ Invoke-RestMethod -Uri 'https://api.sherpadesk.com/tickets?status=open,onhold&ro
 # Get
 Invoke-RestMethod 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Get -Headers $headers
 $resp = Invoke-RestMethod 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Get -Headers $headers
-$resp.content | ConvertFrom-Json
-($resp.content | ConvertFrom-Json).fields
+$resp.fields
 # Patch
 $headers = @{
     Authorization = "Bearer $AirTableKey"
@@ -53,7 +52,7 @@ $headers = @{
 }
 $body = @{
     fields = @{
-        Name = 'EWEB'
+        Name = 'Eugene Water and Electric Board'
     }
 } | ConvertTo-Json
 Invoke-RestMethod 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Patch -Headers $headers -Body $body
@@ -113,10 +112,10 @@ $header = @{
 }
 $body = @{
     account_id = '-1'
-    hours = '2.00'
+    hours = '5.00'
     is_project_log = 'false'
     note_text = 'test_30/01_31/01_BLAHBLAH'
-    task_type_id = '94604'
+    task_type_id = '94603'
     tech_id ='950330'
 } | ConvertTo-Json
 Invoke-RestMethod -Uri "https://api.sherpadesk.com/time/2292188?format=json" -Method Put -Headers $header -Body $body
