@@ -41,8 +41,8 @@ Invoke-RestMethod -Uri 'https://api.sherpadesk.com/tickets?status=open,onhold&ro
 
 #region Airtable PATCH example
 # Get
-Invoke-WebRequest 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Get -Headers $headers
-$resp = Invoke-WebRequest 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Get -Headers $headers
+Invoke-RestMethod 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Get -Headers $headers
+$resp = Invoke-RestMethod 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Get -Headers $headers
 $resp.content | ConvertFrom-Json
 ($resp.content | ConvertFrom-Json).fields
 # Patch
@@ -56,7 +56,7 @@ $body = @{
         Name = 'EWEB'
     }
 } | ConvertTo-Json
-Invoke-WebRequest 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Patch -Headers $headers -Body $body
+Invoke-RestMethod 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Patch -Headers $headers -Body $body
 #endregion
 
 #region PDF Generator POST example

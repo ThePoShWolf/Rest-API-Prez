@@ -95,7 +95,7 @@ $body = @{
         Name = 'Eugene Water and Electric Board'
     }
 } | ConvertTo-Json
-Invoke-WebRequest 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Patch -Headers $headers -Body $body
+Invoke-RestMethod 'https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees/recMvdJuoL6ivDA9I' -Method Patch -Headers $headers -Body $body
 ```
 
 #### PDF Generator API POST
