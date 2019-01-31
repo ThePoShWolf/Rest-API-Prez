@@ -8,7 +8,7 @@
 
 Retrieves info from a base called: 'appBLvHFF78kERCvW' and the 'Payees' Table:
 
-[source](https://airtable.com/api)
+[API Docs](https://airtable.com/api)
 ```bash
 $ curl https://api.airtable.com/v0/appBLvHFF78kERCvW/Payees \
 -H "Authorization: Bearer YOUR_API_KEY"
@@ -24,7 +24,7 @@ That -H is header stuff:
 
 #### Retrieving templates from the PDF Generator API:
 
-[source](https://pdfgeneratorapi.com/docs#templates-get-all)
+[API Docs](https://pdfgeneratorapi.com/docs#templates-get-all)
 ```bash
 curl -H "X-Auth-Key: 61e5f04ca1794253ed17e6bb986c1702" \
     -H "X-Auth-Workspace: demo.example@actualreports.com" \
@@ -46,7 +46,7 @@ Invoke-RestMethod -Uri 'https://us1.pdfgeneratorapi.com/api/v3/templates' -Heade
 
 #### Using Parameters, Basic Authentication
 
-[source](https://documenter.getpostman.com/view/4454237/apisherpadeskcom-playground/RW8AooQg#6a1f8cfa-8910-8c9f-2e68-bfaefb51920b)
+[API Docs](https://documenter.getpostman.com/view/4454237/apisherpadeskcom-playground/RW8AooQg#6a1f8cfa-8910-8c9f-2e68-bfaefb51920b)
 ```bash
 curl --request GET "https://ncg1in-8d1rag:5nuauzj5pkfftlz3fmyksmyhat6j35kf@api.sherpadesk.com/tickets?status=open,onhold&role=user&limit=6&format=json" \
   --data ""
@@ -219,7 +219,7 @@ if ($_.Exception.Response.StatusCode -eq 429) {
 
 ## And it makes for easy cmdlet writing
 
-[PS_PDFGeneratorAPI](https://github.com/ThePoShWolf/PS_PDFGeneratorAPI/blob/master/src/Public/Get-PDFGenTemplates.ps1)
+[PS_PDFGeneratorAPI:Get-PDFGenTemplates.ps1](https://github.com/ThePoShWolf/PS_PDFGeneratorAPI/blob/master/src/Public/Get-PDFGenTemplates.ps1)
 ```PowerShell
 Function Get-PDFGenTemplates {
     Param(
@@ -330,7 +330,7 @@ Function Get-SDTicket{
 
 ### PDF Generator API example
 
-[Repo](https://github.com/theposhwolf/PS_PDFGeneratorAPI)
+[PS_PDFGeneratorAPI](https://github.com/theposhwolf/PS_PDFGeneratorAPI)
 
 For this API, and most, you have to download some auth info ahead of time. But you can still save it:
 
@@ -344,7 +344,7 @@ Function New-PDFGenAuthConfig {
         [ValidateNotNullOrEmpty()]
         [string]$workspace
     )
-    $Script:AuthConfig = [pscustomobject] @{
+    $Script:AuthConfig = @{
         key = $key
         secret = $secret
         workspace = $workspace
@@ -376,7 +376,7 @@ Should you store your API keys in clear text?
 
 ### But you can encrypt them using PowerShell!
 
-[repo](https://github.com/techsnips/psairtable)
+[PSAirtable](https://github.com/techsnips/psairtable)
 
 Credit to Adam Bertram
 
