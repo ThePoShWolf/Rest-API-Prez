@@ -65,7 +65,9 @@ Invoke-RestMethod -Uri 'https://api.sherpadesk.com/tickets?status=open,onhold&ro
 ### Creating or Updating Data
 
 PATCH Updates
+
 POST Creates
+
 PUT Replaces
 
 #### Airtable API PATCH
